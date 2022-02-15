@@ -1,94 +1,101 @@
-import {toBlob,toCSV, toArrayBuffer2} from './utils'
-require('log-timestamp');
+import { toBlob, toCSV, toArrayBuffer } from "./utils";
+require("log-timestamp");
 
-
-self.addEventListener("message", message => {
-  console.log('worker:: Message from Main thread self: '+message.data);
+self.addEventListener("message", (message) => {
+  console.log("worker:: Message from Main thread self: " + message.data);
   onmessage(message);
-  
 });
-var onmessage = async function (e) {
-  var data = e.data;
-  console.log('worker:: worker thread data::'+data)
-  if(!data)return;
-  var type = data.type;
-  var arg = data.arg;
-  var startTime = data.startTime;
+const onmessage = async function (e) {
+  const data = e.data;
+  console.log("worker:: worker thread data::" + data);
+  if (!data) return;
+  const type = data.type;
+  const arg = data.arg;
+  const startTime = data.startTime;
   let arrayBuffer = null;
 
-  console.log("worker:: Message received from main script:"+type);
+  console.log("worker:: Message received from main script:" + type);
   switch (type) {
     case "blobber":
       // start timer - convert object to csv -----------------
-      
-      var timeStart = new Date().getTime();
-      // -----------------------------
 
-      var res = toCSV(arg);
-      // end timer -------------------
-      var timeEnd = new Date().getTime();
-      var timeDiff = timeEnd - timeStart;
-      console.log("worker:: toCSV takes " + timeDiff + " ms to run");
-      // -----------------------------
+      {
+        let timeStart = new Date().getTime();
+        // -----------------------------
 
-           
-      
-      // convert CSV to Blob -----------------------------
+        const res = toCSV(arg);
+        // end timer -------------------
+        let timeEnd = new Date().getTime();
+        let timeDiff = timeEnd - timeStart;
+        console.log("worker:: toCSV takes " + timeDiff + " ms to run");
+        // -----------------------------
 
-      timeStart = new Date().getTime();
+        // convert CSV to Blob -----------------------------
 
-      arrayBuffer = await toArrayBuffer2(res);
+        timeStart = new Date().getTime();
 
-      // end timer -------------------
-      timeEnd = new Date().getTime();
-      timeDiff = timeEnd - timeStart;
-      console.log("worker:: toArrayBuffer2 takes " + timeDiff + " ms to run");
-      
-      // postMessage using buffer copying without transferable buffer-----------------------------
-      postMessage({
-        type: type,
-        data: arrayBuffer,
-        startTime: startTime,
-      });
+        arrayBuffer = await toArrayBuffer(res);
+
+        // end timer -------------------
+        timeEnd = new Date().getTime();
+        timeDiff = timeEnd - timeStart;
+        console.log("worker:: toArrayBuffer2 takes " + timeDiff + " ms to run");
+        console.log(
+          "worker:: postMessage using buffer copying WITHOUT zero copy transferable buffer"
+        );
+
+        // postMessage using buffer copying without transferable buffer-----------------------------
+        postMessage({
+          type: type,
+          data: arrayBuffer,
+          startTime: startTime,
+        });
+      }
       break;
 
     case "blobber-transfer":
+      // start timer - convert object to csv -----------------
 
-    // start timer - convert object to csv -----------------
-      
-    var timeStart = new Date().getTime();
-    // -----------------------------
+      {
+        let timeStart = new Date().getTime();
+        // -----------------------------
 
-    var res = toCSV(arg);
-    // end timer -------------------
-    var timeEnd = new Date().getTime();
-    var timeDiff = timeEnd - timeStart;
-    console.log("worker:: toCSV takes " + timeDiff + " ms to run");
-    // -----------------------------
+        const res = toCSV(arg);
+        // end timer -------------------
+        let timeEnd = new Date().getTime();
+        let timeDiff = timeEnd - timeStart;
+        console.log("worker:: toCSV takes " + timeDiff + " ms to run");
+        // -----------------------------
 
-         
-    
-    // convert CSV to Blob -----------------------------
+        // convert CSV to Blob -----------------------------
 
-    timeStart = new Date().getTime();
+        timeStart = new Date().getTime();
 
-    arrayBuffer = await toArrayBuffer2(res);
+        arrayBuffer = await toArrayBuffer(res);
 
-    // end timer -------------------
-    timeEnd = new Date().getTime();
-    timeDiff = timeEnd - timeStart;
-    console.log("worker:: toArrayBuffer2 takes " + timeDiff + " ms to run");
-    
-    // postMessage using transferable buffer-----------------------------
-      postMessage({
-        type: type,
-        data: arrayBuffer,
-        startTime: startTime,
-      },[arrayBuffer]);
+        // end timer -------------------
+        timeEnd = new Date().getTime();
+        timeDiff = timeEnd - timeStart;
+        console.log("worker:: toArrayBuffer2 takes " + timeDiff + " ms to run");
+
+        console.log(
+          "worker:: postMessage using buffer copying WITH ZERO copy transferable buffer"
+        );
+
+        // postMessage using transferable buffer-----------------------------
+        postMessage(
+          {
+            type: type,
+            data: arrayBuffer,
+            startTime: startTime,
+          },
+          [arrayBuffer]
+        );
+      }
       break;
     default:
-      console.error("worker:: invalid stuff"+e);
-      arrayBuffer=null;
+      console.error("worker:: invalid stuff" + e);
+      arrayBuffer = null;
       break;
   }
 };

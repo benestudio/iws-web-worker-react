@@ -1,17 +1,18 @@
-import React from 'react';
+import React from "react";
 
 function Animation(props) {
   let containerStyle = {
     width: 400,
     height: 400,
-    position: 'relative',
-    background: 'yellow',
+    position: "relative",
+    background: "#50e3c2",
   };
   let animateStyle = {
-    width: 50,
-    height: 50,
-    position: 'absolute',
-    backgroundColor: 'red',
+    width: 20,
+    height: 350,
+    top: 25,
+    position: "absolute",
+    backgroundColor: "#ff3f56",
   };
   return (
     <>
@@ -35,7 +36,7 @@ window.animate = () => {
       pos = 0;
     } else {
       pos++;
-      elem.style.top = pos + "px";
+      //elem.style.top = pos + "px";
       elem.style.left = pos + "px";
     }
   }
